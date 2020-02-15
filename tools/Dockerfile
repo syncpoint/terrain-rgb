@@ -1,0 +1,1 @@
+# docker image containing all tools in order to transform a GeoTIFF into a PNG terrain tileset
