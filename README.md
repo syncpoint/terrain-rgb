@@ -26,13 +26,13 @@ Since we mentioned Austria's Open Data initiative we will use the [DEM of Austri
 
 ### Inspecting the data
 
-Let's see what we have got so far by starting the container and run rasterio in order to collect some information. We'll start the docker container and mount our folder ```/Users/thomas/Development/geodata/ogd-10m-at``` that contains the GeoTIFF to the folder ```/opt/dem```. ```rio``` is the name of the image (see section #Tools) and we execute the shell ```sh```.
+Let's see what we have got so far by starting the container and run rasterio in order to collect some information. We'll start the docker container and mount our folder ```/Users/thomas/Development/geodata/ogd-10m-at``` that contains the GeoTIFF to the folder ```/opt/dem```. ```rio``` is the name of the image (see section #Tools) and we execute the shell ```bash```.
 
 ```shell
   docker run --rm -it -v /Users/thomas/Development/geodata/ogd-10m-at:/opt/dem rio bash
 ```
 
-All commands are now executed inside the container. We change into folder ```/opt/dem``` and execute _rasterio_ to get same basic information:
+__All commands are now executed inside the container__. We change into folder ```/opt/dem``` and execute _rasterio_ to get some basic information:
 
 ```shell
   rio info --indent 2 dhm_at_lamb_10m_2018.tif
@@ -190,6 +190,8 @@ This is going to take a few minutes and after it's done we can call ```rio info`
 }
 ```
 
+OK, the _Coordinate Reference System_ (CRS) has changed to _EPSG:3857_. Due to the reprojection, the resolution increased from 10x10m to 14.85x14.85m.
+
 By using [QGIS](https://qgis.org) we can visualize our greyscale data. The areas around Austria are _No Data _ areas.
 
 ![DEM Visualization of Austria](images/DHM-Austria.png)
@@ -216,3 +218,28 @@ The image below shows the elevation data encoded in RGB values. The _No Data_ ar
 ![DEM Visualization of Austria](images/DHM-Austria-RGB.png)
 
 The artefacts in the alps need to be further examined, most likely they are already in the original data.
+
+## Verifying the elevation data
+
+In order to verify that all our steps did not change the elevation data too much, we're going to check some well-known heights. Vienna' Open data Initiative publishes a set of [proven elevation data](https://www.data.gv.at/katalog/dataset/stadt-wien_hhenfestpunktewien).
+
+| Name  | Lon Lat  | proven | lambert | EPSG:3857  | EPSG:3857 RGB |
+|------------------|----------|--------|---------|------------|---------------|
+| 1180 Utopiaweg 1 | 16.299522929921253 48.2383409011934 | 333.406 | 333.0957 | 333.0957  | 333.0 |
+| 1190 Höhenstraße | 16.289583084029545 48.2610837936095 | 403.356 | 403.1385 | 403.662 | 403.6
+| 1010 Stephansplatz  | 16.37255104738311 48.208694143314325 | 171.766 | 171.418  |  171.418 | 171.4  |
+| 1070 Lindengasse 3 | 16.354641842524874 48.201276304040626 | 198.515 | 198.0624 | 198.2035 | 192.2 |
+| 1220 Industriestraße 81 | 16.44120643847108 48.225003606677504 | 158.911 | 158.625 | 158.625 | 158.6 |
+
+Unfortunately the other federal provinces of Austria do not provide open site datum.
+
+## Tile pyramid
+
+
+
+
+
+
+# References
+
+* [Höhenfestpunkte Wien ('Vienna site datum')](https://www.data.gv.at/katalog/dataset/stadt-wien_hhenfestpunktewien) Datenquelle: Stadt Wien – https://data.wien.gv.at 
