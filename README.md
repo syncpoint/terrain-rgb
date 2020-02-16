@@ -190,7 +190,7 @@ This is going to take a few minutes and after it's done we can call ```rio info`
 }
 ```
 
-By using [QGIS](https://qgis.org) we can visualize our greyscale data. The deep black areas around Austria are _No Data _ areas.
+By using [QGIS](https://qgis.org) we can visualize our greyscale data. The areas around Austria are _No Data _ areas.
 
 ![DEM Visualization of Austria](images/DHM-Austria.png)
 
@@ -211,7 +211,7 @@ So the ```base value``` is ```-10000``` and the ```interval``` (precision of the
     dhm_at_EPSG3857_10m_2018_RGB.tif
 ```
 
-The image below shows the elevation data encoded in RGB values. The formerly black area (_No Data_) is now at elevation zero.
+The image below shows the elevation data encoded in RGB values. The _No Data_ area is now at elevation zero.
 
 ![DEM Visualization of Austria](images/DHM-Austria-RGB.png)
 
