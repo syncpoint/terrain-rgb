@@ -110,18 +110,19 @@ There are some very important informations here:
 3) The hight is encoded in a ```Float32``` data type.
 4) The value used to encode the semantic of _no data available_ is ```-3.4028234663852886e+38```
 
-## Reprojection
+## Reprojection and resetting the value for _No Data_
 
-Since we want our tiles to use the WebMercator projection EPSG:3857 we have to re-project the GeoTIFF first. To do so we can employ rasterio's ```warp``` command:
+Since we want our tiles to use the WebMercator projection EPSG:3857 we have to re-project the GeoTIFF first. To do so we can employ the ```gdalwarp``` command. In order to avoid a second processing step we also reset the value for _No Data_. The original file has a value of ```-3.4028234663852886e+38``` for this, we will set it to ```None```. This is required because we want to map the elevation values from a 32 bit signed float number to 3 unsingned bytes. And ```-3.4028234663852886e+38``` is out of scope for unsigned values.
 
 ```shell
-  rio warp 
+  gdalwarp 
+    -t_srs EPSG:3857 
+    -dstnodata None 
+    -co TILED=YES 
+    -co COMPRESS=DEFLATE 
+    -co BIGTIFF=IF_NEEDED 
     dhm_at_lamb_10m_2018.tif 
-    dhm_at_EPSG3857_10m_2018.tif 
-    --dst-crs EPSG:3857 
-    --co TILED=YES 
-    --co COMPRESS=DEFLATE 
-    --co BIGTIFF=IF_NEEDED
+    dhm_at_EPSG3857_10m_2018.tif
 ```
 
 This is going to take a few minutes and after it's done we can call ```rio info``` again:
@@ -131,9 +132,9 @@ This is going to take a few minutes and after it's done we can call ```rio info`
   "blockxsize": 256,
   "blockysize": 256,
   "bounds": [
-    1040113.8086787444,
+    1040113.8086787398,
     5821081.891449142,
-    1925726.8625255637,
+    1925726.8625255583,
     6305034.650461274
   ],
   "colorinterp": [
@@ -153,18 +154,18 @@ This is going to take a few minutes and after it's done we can call ```rio info`
   ],
   "interleave": "band",
   "lnglat": [
-    13.321300026030647,
+    13.321300026030602,
     47.73607122149297
   ],
   "mask_flags": [
     [
-      "nodata"
+      "all_valid"
     ]
   ],
-  "nodata": -3.4028234663852886e+38,
+  "nodata": null,
   "res": [
-    14.85155462505776,
-    14.85155462505776
+    14.851554625057746,
+    14.851554625057746
   ],
   "shape": [
     32586,
@@ -172,22 +173,46 @@ This is going to take a few minutes and after it's done we can call ```rio info`
   ],
   "tiled": true,
   "transform": [
-    14.85155462505776,
+    14.851554625057746,
     0.0,
-    1040113.8086787444,
+    1040113.8086787398,
     0.0,
-    -14.85155462505776,
+    -14.851554625057746,
     6305034.650461274,
     0.0,
     0.0,
     1.0
   ],
   "units": [
-    null
+    "metre"
   ],
   "width": 59631
 }
 ```
 
-By using QGIS we can visualize our data
+By using [QGIS](https://qgis.org) we can visualize our greyscale data. The deep black areas around Austria are _No Data _ areas.
+
 ![DEM Visualization of Austria](images/DHM-Austria.png)
+
+## RGB-ify
+Now let's transform the greyscale data into the RGB data. The formula used to calculate the elevation is
+
+```
+  height = -10000 + ((R * 256 * 256 + G * 256 + B) * 0.1)
+```
+
+So the ```base value``` is ```-10000``` and the ```interval``` (precision of the output) is ```0.1```.
+
+```shell
+  rio rgbify 
+    -b -10000 
+    -i 0.1
+    dhm_at_EPSG3857_10m_2018_None.tif
+    dhm_at_EPSG3857_10m_2018_RGB.tif
+```
+
+The image below shows the elevation data encoded in RGB values. The formerly black area (_No Data_) is now at elevation zero.
+
+![DEM Visualization of Austria](images/DHM-Austria-RGB.png)
+
+The artefacts in the alps need to be further examined, most likely they are already in the original data.
