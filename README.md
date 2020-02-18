@@ -7,7 +7,7 @@ Austria's gonvernment is fully commited to the idea of open data. A huge amount 
 
 Based on the model of [Mapbox Terrain-RGB](https://docs.mapbox.com/help/troubleshooting/access-elevation-data/) tileset we will document all steps required in order to create a similar set of tiles. This also means that we want our tiles to
 
-1) use the WebMercator/WGS 84/Pseudo-Mercator -- Spherical Mercator projection [EPSG:3857](https://epsg.io/3857)
+1) use the WebMercator projection [EPSG:3857](https://epsg.io/3857)
 2) be available in the zoom levels from 0 up to 15
 
 ## Tools
@@ -221,7 +221,13 @@ The artefacts in the alps need to be further examined, most likely they are alre
 
 ## Verifying the elevation data
 
-In order to verify that all our steps did not change the elevation data too much, we're going to check some well-known heights. Vienna' Open data Initiative publishes a set of [proven elevation data](https://www.data.gv.at/katalog/dataset/stadt-wien_hhenfestpunktewien).
+In order to verify that all our steps did not change the elevation data too much, we're going to check some well-known heights. Vienna's Open Data Initiative publishes a set of [proven elevation data](https://www.data.gv.at/katalog/dataset/stadt-wien_hhenfestpunktewien). 
+
+```shell
+  gdallocationinfo -wgs84 dhm_at_EPSG3857_10m_2018_RGB.tif 16.299522929921253 48.2383409011934
+```
+
+The table below shows an excerpt of randomly choosen points in Vienna:
 
 | Name  | Lon Lat  | proven | lambert | EPSG:3857  | EPSG:3857 RGB |
 |------------------|----------|--------|---------|------------|---------------|
@@ -231,15 +237,42 @@ In order to verify that all our steps did not change the elevation data too much
 | 1070 Lindengasse 3 | 16.354641842524874 48.201276304040626 | 198.515 | 198.0624 | 198.2035 | 192.2 |
 | 1220 Industriestraße 81 | 16.44120643847108 48.225003606677504 | 158.911 | 158.625 | 158.625 | 158.6 |
 
-Unfortunately the other federal provinces of Austria do not provide open site datum.
+Unfortunately the other federal provinces of Austria do not provide any open site datum.
 
 ## Tile pyramid
 
+The last step of our journey is to cut the huge GeoTiff into a pyramid of tiles with a size of 256x256 pixel. Your favorite search engine will come up with a lot of ways to do so:
 
+* gdal_translate with gdaladdo
+* rasterio mbtiles
+* gdal2mbtiles
+* gdal2tiles
 
+For us only the last one was successful. Create a new folder (e.g. ```tiles```) where to put the tiles to. 
 
+> Attention: None of processing steps mentioned here is done quickly, but the following is __very expensive__. You should test the results first by reducing the zoom level(s) to either a single one (e.g. ```--zoom=8``` or at least to leves with lower details.
 
+On our 2019 Intel Core i9 with 8 cores the calculation of the tiles took more than two hours!
+
+```shell
+  gdal2tiles.py --zoom=5-15 --processes=8 dhm_at_EPSG3857_10m_2018_RGB.tif ./tiles
+```
+
+Besides the tiles ```gdal2tiles``` also creates a simple web application that you can use to view the result (we like the Leaflet version the most):
+
+The screenshot below shows the rendered tiles as an overlay to Open Street Map at zoom level 14 (Salzburg/Grödig).
+
+![DEM Visualization with tiles at level 14](images/DHM-Austria-Level14.png)
+
+## MBTiles container
+
+__TBD__
+
+## Hosting
+
+__TBD__
 
 # References
 
+* [Digitales Geländemodell (DGM) Österreich (DEM of Austria with a resolution of 10x10m)](https://www.data.gv.at/katalog/dataset/b5de6975-417b-4320-afdb-eb2a9e2a1dbf) CC-BY-4.0: Land Kärnten - data.ktn.gv.at
 * [Höhenfestpunkte Wien ('Vienna site datum')](https://www.data.gv.at/katalog/dataset/stadt-wien_hhenfestpunktewien) Datenquelle: Stadt Wien – https://data.wien.gv.at 
