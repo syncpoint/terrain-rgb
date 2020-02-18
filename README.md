@@ -262,9 +262,12 @@ On our 2019 Intel Core i9 with 8 cores the calculation of the tiles took more th
 
 Besides the tiles ```gdal2tiles``` also creates a simple web application that you can use to view the result (we like the Leaflet version the most):
 
-The screenshot below shows the rendered tiles as an overlay to Open Street Map at zoom level 14 (Salzburg/Grödig).
+The two screenshots below show the rendered tiles as an overlay to Open Street Map at zoom level 8 (Austria) and level 14 (Salzburg/Grödig).
 
+![DEM Visualization with tiles at level 8](images/DHM-Austria-Overlay.jpg)
 ![DEM Visualization with tiles at level 14](images/DHM-Austria-Level14.png)
+
+The size of the resulting tile pyramid is 6.1 GByte.
 
 ## MBTiles container
 
