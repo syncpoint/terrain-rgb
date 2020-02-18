@@ -258,6 +258,8 @@ On our 2019 Intel Core i9 with 8 cores the calculation of the tiles took more th
   gdal2tiles.py --zoom=5-15 --processes=8 dhm_at_EPSG3857_10m_2018_RGB.tif ./tiles
 ```
 
+> Optimization: We pretty sure that this process can be optimized by telling ```gdal2tiles``` to skip all tiles for the _No Data_ areas.
+
 Besides the tiles ```gdal2tiles``` also creates a simple web application that you can use to view the result (we like the Leaflet version the most):
 
 The screenshot below shows the rendered tiles as an overlay to Open Street Map at zoom level 14 (Salzburg/Grödig).
