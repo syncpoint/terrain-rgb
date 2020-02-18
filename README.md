@@ -258,7 +258,7 @@ On our 2019 Intel Core i9 with 8 cores the calculation of the tiles took more th
   gdal2tiles.py --zoom=5-15 --processes=8 dhm_at_EPSG3857_10m_2018_RGB.tif ./tiles
 ```
 
-> Optimization: We pretty sure that this process can be optimized by telling ```gdal2tiles``` to skip all tiles for the _No Data_ areas.
+> Optimization: The size of the resulting tile pyramid is 6.1 GByte. We are pretty sure that this process can be optimized by telling ```gdal2tiles``` to skip all tiles for the _No Data_ areas. This will increase the processing speed and decrease the number of tiles required.
 
 Besides the tiles ```gdal2tiles``` also creates a simple web application that you can use to view the result (we like the Leaflet version the most):
 
@@ -267,7 +267,7 @@ The two screenshots below show the rendered tiles as an overlay to Open Street M
 ![DEM Visualization with tiles at level 8](images/DHM-Austria-Overlay.jpg)
 ![DEM Visualization with tiles at level 14](images/DHM-Austria-Level14.png)
 
-The size of the resulting tile pyramid is 6.1 GByte.
+
 
 ## MBTiles container
 
