@@ -338,9 +338,10 @@ We have some UTF-8 encoding problems for german umlauts, but you can safely igno
 
 # ToDo
 
-* Reduce the number of tiles by skipping the areas without elevation data. We estimate the potential savings are approximately 35%.
-* Examine the artefacts in the alps.
-* Verify the elevation on randomly distributed locations over Austria.
+1. Reduce the number of tiles by skipping the areas without elevation data. We estimate the potential savings are approximately 35%.
+2. Examine the artefacts in the alps.
+3. Verify the elevation on randomly distributed locations over Austria.
+4. __As of Feb. 17 2020 new data has been published [Digitales Geländemodell - 10m](https://www.data.gv.at/katalog/dataset/46a7a06a-f69b-405e-aac2-77f775449ad3). The GeoTIFF now contains a second band used for transparancy.__ Maybe this renders 1) obsolete.
 
 # References
 
