@@ -1,18 +1,18 @@
 # terrain-rgb
-A detailed how-to to convert geo-tiff files containing DEM data into a pyramid of png files
+A detailed tutorial about how to convert geo-tiff files containing Digital Elevation Model (DEM) data into a pyramid of png files. The tiles go into an MBTiles container in order to host them _offline_ with MBTileserver.
 
 ## Motivation
 
-Austria's gonvernment is fully commited to the idea of open data. A huge amount of data is published on [Austria's open data site](https://data.gv.at). This includes geo data like (vector) basemaps, contour lines, hillshading tiles and a lot more. Also Digital Elevation Model (DEM) data is available. The data is published as a (huge!) GeoTIFF file. Although one may convert the file into a _Cloud Optimized GeoTIFF_ (COG), the goal of this how-to is to convert the GeoTIFF into a pyramid of PNG files that are contained in an MBTiles container.
+Austria's gonvernment is fully commited to the idea of open data. A huge amount of data is published on [Austria's open data site](https://data.gv.at). This includes spatial data like (vector) basemaps, contour lines, hillshading tiles and a lot more. Also Digital Elevation Model (DEM) data is available. The data is published as a (huge!) GeoTIFF file. Although one may convert the file into a _Cloud Optimized GeoTIFF_ (COG), the goal of this tutorial is how to convert the GeoTIFF into a pyramid of PNG files that are contained in an MBTiles container.
 
-Based on the model of [Mapbox Terrain-RGB](https://docs.mapbox.com/help/troubleshooting/access-elevation-data/) tileset we will document all steps required in order to create a similar set of tiles. This also means that we want our tiles to
+Based on the model of the [Mapbox Terrain-RGB](https://docs.mapbox.com/help/troubleshooting/access-elevation-data/) tileset we will document all steps required in order to create a similar set of tiles. This also means that we want our tiles to
 
 1) use the WebMercator projection [EPSG:3857](https://epsg.io/3857)
-2) be available in the zoom levels from 0 up to 15
+2) be available in the zoom levels from 8 up to 15
 
 ## Tools
 
-The open source world is full of useful tools that provide a bunch of functionality. Thanks to Docker there is no need to install them locally. You can install all of the tool on your machine be we will use docker here. The ```tools```  folder contains a ```Dockerfile``` that can be used to create an image. Well will tag the image with ```rio``` since we make heavy use of Mapbox's [RasterIO](https://rasterio.readthedocs.io/en/latest/).
+The open source world is full of useful tools that provide a bunch of functionality. Thanks to Docker there is no need to install them locally. Of course you can install all of the tool on your machine be we will use docker here. The ```tools``` folder of this repository contains a ```Dockerfile``` that can be used to create an image. Well will tag the image with ```rio``` since we make heavy use of Mapbox's [RasterIO](https://rasterio.readthedocs.io/en/latest/).
 
 ```shell
   cd tools
@@ -26,7 +26,7 @@ Since we mentioned Austria's Open Data initiative we will use the [DEM of Austri
 
 ### Inspecting the data
 
-Let's see what we have got so far by starting the container and run rasterio in order to collect some information. We'll start the docker container and mount our folder ```/Users/thomas/Development/geodata/ogd-10m-at``` that contains the GeoTIFF to the folder ```/opt/dem```. ```rio``` is the name of the image (see section #Tools) and we execute the shell ```bash```.
+Let's see what we have got so far by starting the container and run rasterio in order to collect some information. We'll start the docker container and mount our folder ```/Users/thomas/Development/geodata/ogd-10m-at``` with the  GeoTIFF inside to the folder ```/opt/dem``` within the container's filesystem. ```rio``` is the name of the image (see section #Tools) and we want Docker to execute the shell ```bash``` inside the container.
 
 ```shell
   docker run --rm -it -v /Users/thomas/Development/geodata/ogd-10m-at:/opt/dem rio bash
@@ -107,7 +107,7 @@ There are some very important informations here:
 
 1) The projection is _MGI\_Austria\_Lambert_ with a _Bessel_ spheroid. This is typical for western european regions since the Lambert projection gives us the least distortions here.
 2) The GeoTiff is already tiled with a block size of 256 pixel.
-3) The hight is encoded in a ```Float32``` data type.
+3) The elevation is encoded by makeing use of a ```Float32``` data type.
 4) The value used to encode the semantic of _no data available_ is ```-3.4028234663852886e+38```
 
 ## Reprojection and resetting the value for _No Data_
@@ -234,10 +234,10 @@ The table below shows an excerpt of randomly choosen points in Vienna:
 | 1180 Utopiaweg 1 | 16.299522929921253 48.2383409011934 | 333.406 | 333.0957 | 333.0957  | 333.0 |
 | 1190 Höhenstraße | 16.289583084029545 48.2610837936095 | 403.356 | 403.1385 | 403.662 | 403.6
 | 1010 Stephansplatz  | 16.37255104738311 48.208694143314325 | 171.766 | 171.418  |  171.418 | 171.4  |
-| 1070 Lindengasse 3 | 16.354641842524874 48.201276304040626 | 198.515 | 198.0624 | 198.2035 | 192.2 |
+| 1070 Lindengasse 3 | 16.354641842524874 48.201276304040626 | 198.515 | 198.0624 | 198.2035 | 198.2 |
 | 1220 Industriestraße 81 | 16.44120643847108 48.225003606677504 | 158.911 | 158.625 | 158.625 | 158.6 |
 
-Unfortunately the other federal provinces of Austria do not provide any open site datum.
+To our knowledge the other federal provinces of Austria do not provide any open site datum.
 
 ## Tile pyramid
 
@@ -250,7 +250,7 @@ The last step of our journey is to cut the huge GeoTiff into a pyramid of tiles 
 
 For us only the last one was successful. Create a new folder (e.g. ```tiles```) where to put the tiles to. 
 
-> Attention: None of processing steps mentioned here is done quickly, but the following is __very expensive__. You should test the results first by reducing the zoom level(s) to either a single one (e.g. ```--zoom=8``` or at least to leves with lower details.
+> Attention: None of processing steps mentioned here is done quickly, but the following is __very time consuming__. You should test the results first by reducing the zoom level(s) to either a single one (e.g. ```--zoom=8``` or at least to leves with lower details.
 
 On our 2019 Intel Core i9 with 8 cores the calculation of the tiles took more than two hours!
 
@@ -268,14 +268,79 @@ The two screenshots below show the rendered tiles as an overlay to Open Street M
 ![DEM Visualization with tiles at level 14](images/DHM-Austria-Level14.png)
 
 
-
 ## MBTiles container
 
-__TBD__
+Mapbox is one of the leading providers of maps and location services. They made most of their specifications and software Open Source. Besides the [MBTile Specification](https://github.com/mapbox/mbtiles-spec) they also provide [mbutil](https://github.com/mapbox/mbutil) which is a tools for putting tilesets into an MBTiles container.
+
+```mb-util``` imports an ```metadata.json``` file if it exists in the root of the ```tiles``` folder. For a pretty naming we can create one like this:
+
+```json
+  {
+    "name": "Digitales Geländemodell (DGM) Österreich ",
+    "description": "Digitales Geländemodell (DGM) Österreich, CC-BY-4.0: Land Kärnten - data.ktn.gv.at",
+    "version": "3"
+  }
+```
+
+Whooa, now for the final step! Run this command and be a little patient ;-) 
+
+```shell
+  mb-util --image_format=png --scheme=tms ./tiles/ ./dhm_at_EPSG3857_10m_2018.mbtiles
+```
+
+The optional ```--silent``` parameter would suppress the output of the tiles processed. 
+
+Creating the MBTile container takes a lot of time and the resulting mbtiles file has a similar size as the folder containing the PNG files (6 GB).
 
 ## Hosting
 
-__TBD__
+We have been using [tileserver-gl](https://github.com/maptiler/tileserver-gl) for our [Hosting basemap.at vector tiles offline](https://github.com/syncpoint/basemap.at) tutorial. For the elevation data tutorial we will be using [mbtileserver](https://github.com/consbio/mbtileserver) which is written in go. _mbtileserver_ is a single executable that automatically provides all MBTiles containers that are located in a child-folder (```tilesets```) of the executable. Please consult the github site of mbtileserver for installation instructions.
+
+```shell
+  ❯ ~/go/bin/mbtileserver --verbose
+  INFO[0000] Found 1 mbtiles files in ./tilesets
+
+  --------------------------------------
+  Use Ctrl-C to exit the server
+  --------------------------------------
+  HTTP server started on port 8000
+```
+
+Navigate your favorite browser to ```http://localhost:8000/services``` and you will receive a description of the (tile) services provided:
+
+```JSON
+  [{"imageType":"png","url":"http://localhost:8000/services/dhm_at_EPSG3857_10m_2018"}]
+```
+
+Open the url and you will receive even more details, including the ```z/x/y``` url for the tiles:
+
+```JSON
+  {
+  "description": "Digitales GelÃ¤ndemodell (DGM) Ã–sterreich, CC-BY-4.0: Land KÃ¤rnten - data.ktn.gv.at",
+  "format": "png",
+  "id": "dhm_at_EPSG3857_10m_2018",
+  "map": "http://localhost:8000/services/dhm_at_EPSG3857_10m_2018/map",
+  "maxzoom": 15,
+  "minzoom": 5,
+  "name": "Digitales GelÃ¤ndemodell (DGM) Ã–sterreich ",
+  "scheme": "xyz",
+  "tilejson": "2.1.0",
+  "tiles": [
+    "http://localhost:8000/services/dhm_at_EPSG3857_10m_2018/tiles/{z}/{x}/{y}.png"
+  ],
+  "version": "3"
+}
+```
+
+We have some UTF-8 encoding problems for german umlauts, but you can safely ignore these.
+
+> Now you have ready-to-use elevation tiles that are compatible with Mapbox' _Terrain RGB_ tiles and are available offline!
+
+# ToDo
+
+* Reduce the number of tiles by skipping the areas without elevation data. We estimate the potential savings are approximately 35%.
+* Examine the artefacts in the alps.
+* Verify the elevation on randomly distributed locations over Austria.
 
 # References
 
