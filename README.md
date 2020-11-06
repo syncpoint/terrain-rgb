@@ -16,7 +16,7 @@ The open source world is full of useful tools that provide a bunch of functional
 
 ```shell
   cd tools
-  docker create . -t rio
+  docker build . -t rio
 ```
 Based on the ```osgeo/gdal``` docker image we install ```rasterio``` and a few plugins from the [RasterIO Plugin Registry](https://github.com/mapbox/rasterio/wiki/Rio-plugin-registry).
 
