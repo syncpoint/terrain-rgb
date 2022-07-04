@@ -16,7 +16,7 @@ The open source world is full of useful tools that provide a bunch of functional
 
 ```shell
   cd tools
-  docker create . -t rio
+  docker build . -t rio
 ```
 Based on the ```osgeo/gdal``` docker image we install ```rasterio``` and a few plugins from the [RasterIO Plugin Registry](https://github.com/mapbox/rasterio/wiki/Rio-plugin-registry).
 
@@ -118,11 +118,13 @@ Since we want our tiles to use the WebMercator projection EPSG:3857 we have to r
   gdalwarp 
     -t_srs EPSG:3857 
     -dstnodata None 
+    -novshiftgrid
     -co TILED=YES 
     -co COMPRESS=DEFLATE 
-    -co BIGTIFF=IF_NEEDED 
+    -co BIGTIFF=IF_NEEDED
+    -r lanczos
     dhm_at_lamb_10m_2018.tif 
-    dhm_at_EPSG3857_10m_2018.tif
+    dhm_at_EPSG3857_10m_2018_LANCZOS.tif
 ```
 
 This is going to take a few minutes and after it's done we can call ```rio info``` again:
@@ -213,6 +215,7 @@ So the ```base value``` is ```-10000``` and the ```interval``` (precision of the
     dhm_at_EPSG3857_10m_2018_RGB.tif
 ```
 
+
 The image below shows the elevation data encoded in RGB values. The _No Data_ area is now at elevation zero.
 
 ![DEM Visualization of Austria](images/DHM-Austria-RGB.png)
@@ -270,13 +273,17 @@ The two screenshots below show the rendered tiles as an overlay to Open Street M
 
 ## MBTiles container
 
-Mapbox is one of the leading providers of maps and location services. They made most of their specifications and software Open Source. Besides the [MBTile Specification](https://github.com/mapbox/mbtiles-spec) they also provide [mbutil](https://github.com/mapbox/mbutil) which is a tools for putting tilesets into an MBTiles container.
+Mapbox is one of the leading providers of maps and location services. They made most of their specifications and software Open Source. Besides the [MBTile Specification](https://github.com/mapbox/mbtiles-spec/blob/master/1.3/spec.md) they also provide [mbutil](https://github.com/mapbox/mbutil) which is a tools for putting tilesets into an MBTiles container.
 
-```mb-util``` imports an ```metadata.json``` file if it exists in the root of the ```tiles``` folder. For a pretty naming we can create one like this:
+```mb-util``` imports an ```metadata.json``` file if it exists in the root of the ```tiles``` folder. Plese see the [MBTile Metadata Specs](https://github.com/mapbox/mbtiles-spec/blob/master/1.3/spec.md#content) for details:
 
 ```json
   {
     "name": "Digitales Geländemodell (DGM) Österreich ",
+    "format": "png",
+    "minzoom": 5,
+    "maxzoom": 15,
+    "center": "47.73607122149297, 13.321300026030602, 8",
     "description": "Digitales Geländemodell (DGM) Österreich, CC-BY-4.0: Land Kärnten - data.ktn.gv.at",
     "version": "3"
   }
@@ -294,7 +301,7 @@ Creating the MBTile container takes a lot of time and the resulting mbtiles file
 
 ## Hosting
 
-We have been using [tileserver-gl](https://github.com/maptiler/tileserver-gl) for our [Hosting basemap.at vector tiles offline](https://github.com/syncpoint/basemap.at) tutorial. For the elevation data tutorial we will be using [mbtileserver](https://github.com/consbio/mbtileserver) which is written in go. _mbtileserver_ is a single executable that automatically provides all MBTiles containers that are located in a child-folder (```tilesets```) of the executable. Please consult the github site of mbtileserver for installation instructions.
+We have been using [tileserver-gl](https://github.com/maptiler/tileserver-gl) for our [Hosting basemap.at vector tiles offline](https://github.com/syncpoint/basemap.at) tutorial. For the elevation data tutorial we will be using [mbtileserver](https://github.com/consbio/mbtileserver) which is written in _golang_. _mbtileserver_ is a single executable that automatically provides all MBTiles containers that are located in a child-folder (```tilesets```) of the executable. Please consult the github site of mbtileserver for installation instructions.
 
 ```shell
   ❯ ~/go/bin/mbtileserver --verbose
@@ -341,7 +348,7 @@ We have some UTF-8 encoding problems for german umlauts, but you can safely igno
 1. Reduce the number of tiles by skipping the areas without elevation data. We estimate the potential savings are approximately 35%.
 2. Examine the artefacts in the alps.
 3. Verify the elevation on randomly distributed locations over Austria.
-4. __As of Feb. 17 2020 new data has been published [Digitales Geländemodell - 10m](https://www.data.gv.at/katalog/dataset/46a7a06a-f69b-405e-aac2-77f775449ad3). The GeoTIFF now contains a second band used for transparancy.__ Maybe this renders 1) obsolete.
+4. __As of Feb. 17 2020 new data has been published [Digitales Geländemodell - 10m](https://www.data.gv.at/katalog/dataset/46a7a06a-f69b-405e-aac2-77f775449ad3). The GeoTIFF now contains a second band used for transparency.__ Maybe this renders 1) obsolete.
 
 # References
 
